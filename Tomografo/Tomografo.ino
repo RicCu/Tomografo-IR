@@ -113,8 +113,8 @@ void collectSlice(float sinogram[NUM_STEPS_PER_SLICE][NUM_DETECTORS]){
   
   while (current_xy_step < NUM_STEPS_PER_SLICE){
     current_xy_step = stepXY(STEPPER_XY_PINS, current_xy_step, CLOCKWISE_DIRECTION);
-    //queryDetectors(sinogram[current_xy_step], DETECTOR_PINS, NUM_DETECTORS,
-    //               NUM_SAMPLES_PER_DETECTOR);
+    queryDetectors(sinogram[current_xy_step], DETECTOR_PINS, NUM_DETECTORS,
+                   NUM_SAMPLES_PER_DETECTOR);
                    delay(100);
   }
   //resetXY(STEPPER_XY_PINS, current_xy_step, CLOCKWISE_DIRECTION);
