@@ -4,9 +4,11 @@ if ~isempty(instrfind)
 end
 NUM_STEPS = 48;
 NUM_DETECTORS = 3;
-NUM_SLICES = 3;
+NUM_SLICES = 10;
 ard=serial('COM3','BaudRate',9600, 'Terminator', '/'); % create serial communication object 
 fopen(ard); % initiate arduino communication
+pause(3); % Importante esperar a la conexion!!
+%{
 volume = zeros([NUM_STEPS, NUM_DETECTORS, NUM_SLICES]);
 pause(3);   % Importante esperar a la conexion!!
 fprintf(ard, '%c', 'm'); % Comando para mandar echo de matriz
@@ -35,6 +37,9 @@ disp('READING');
 %disp(fscanf(ard, '%e'));
 %sinograms = [sinograms ReadMatrix(ard, 48, 3)];
 volume(:,:,3) = ReadMatrix(ard, 48, 3);
+%}
+
+vol = ReadVolume(ard, NUM_DETECTORS, NUM_STEPS, NUM_SLICES);
 
 %{
 img = iradon(sinograma', 7.5);
@@ -48,5 +53,5 @@ subplot(1, 2, 2);
 imshow(img);
 title('Reconstrucción', 'FontWeight', 'bold', 'FontSize', 16);
 %}
-%fclose(ard);
+fclose(ard);
 

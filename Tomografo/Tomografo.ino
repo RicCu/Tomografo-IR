@@ -4,7 +4,7 @@
 #define NUM_DETECTORS 3
 #define NUM_SAMPLES_PER_DETECTOR 10
 #define NUM_STEPS_PER_SLICE 48 // 180 grados
-#define NUM_STEPS_PER_SLICE_Z 3 //30
+#define NUM_STEPS_PER_SLICE_Z 10 //30
 #define TOTAL_NUM_XY_STEPS 48 // 360
 #define CLOCKWISE_DIRECTION true
 #define BASE_DELAY 50
@@ -169,9 +169,9 @@ void collectSlice(float sinogram[NUM_STEPS_PER_SLICE][NUM_DETECTORS]){
   unsigned int current_z_step = 0;
 
   while (current_xy_step < NUM_STEPS_PER_SLICE){
-    current_xy_step = stepXY(STEPPER_XY_PINS, current_xy_step, CLOCKWISE_DIRECTION);
     queryDetectors(sinogram[current_xy_step], DETECTOR_PINS, NUM_DETECTORS,
                    NUM_SAMPLES_PER_DETECTOR);
+    current_xy_step = stepXY(STEPPER_XY_PINS, current_xy_step, CLOCKWISE_DIRECTION);
                    delay(100);
   }
   //resetXY(STEPPER_XY_PINS, current_xy_step, CLOCKWISE_DIRECTION);
