@@ -4,10 +4,12 @@
 #define NUM_DETECTORS 3
 #define NUM_SAMPLES_PER_DETECTOR 10
 #define NUM_STEPS_PER_SLICE 48 // 180 grados
-#define NUM_STEPS_PER_SLICE_Z 1 //30
+#define NUM_STEPS_PER_SLICE_Z 3 //30
 #define TOTAL_NUM_XY_STEPS 48 // 360
 #define CLOCKWISE_DIRECTION true
 #define BASE_DELAY 50
+#define OK_TOKEN 200
+#define DONE_TOKEN 205
 
 /********************************Detectors**********************************/
 static const uint8_t DETECTOR_PINS[NUM_DETECTORS] = {A0, A1, A2};
@@ -53,12 +55,24 @@ String WaitForData() {
 }
 
 void sendMatrix(float matrix[NUM_STEPS_PER_SLICE][NUM_DETECTORS], int rows, int cols){
+  Serial.print("s/");
   for (int r=0; r<rows; r++){
     for (int c=0; c<cols; c++){
       Serial.print(matrix[r][c], 4);
       Serial.print('/');
     }
   }
+  Serial.print("e/");
+}
+
+void sendOK(){
+  Serial.print(OK_TOKEN);
+  Serial.print('/');
+}
+
+void sendDONE(){
+  Serial.print(DONE_TOKEN);
+  Serial.print('/');
 }
 
 
@@ -154,19 +168,32 @@ void collectSlice(float sinogram[NUM_STEPS_PER_SLICE][NUM_DETECTORS]){
   unsigned int current_xy_step = 0;
   unsigned int current_z_step = 0;
 
-  while (current_z_step < NUM_STEPS_PER_SLICE_Z){
-
-    current_z_step = stepZ(STEPPER_Z_PINS, current_z_step, CLOCKWISE_DIRECTION);
+  while (current_xy_step < NUM_STEPS_PER_SLICE){
+    current_xy_step = stepXY(STEPPER_XY_PINS, current_xy_step, CLOCKWISE_DIRECTION);
+    queryDetectors(sinogram[current_xy_step], DETECTOR_PINS, NUM_DETECTORS,
+                   NUM_SAMPLES_PER_DETECTOR);
                    delay(100);
-    while (current_xy_step < NUM_STEPS_PER_SLICE){
-      current_xy_step = stepXY(STEPPER_XY_PINS, current_xy_step, CLOCKWISE_DIRECTION);
-      queryDetectors(sinogram[current_xy_step], DETECTOR_PINS, NUM_DETECTORS,
-                     NUM_SAMPLES_PER_DETECTOR);
-                     delay(100);
-    }
-    current_xy_step = 0;
   }
   //resetXY(STEPPER_XY_PINS, current_xy_step, CLOCKWISE_DIRECTION);
+}
+
+void collectVolume(){
+  float sinogram[NUM_STEPS_PER_SLICE][NUM_DETECTORS];
+  unsigned int current_z_step = 0;
+  String msg;
+  delay(1000);
+  while (current_z_step < NUM_STEPS_PER_SLICE_Z){
+    //delay(5000);
+    //msg = WaitForData();
+    //if (msg == "n"){
+      current_z_step = stepZ(STEPPER_Z_PINS, current_z_step, CLOCKWISE_DIRECTION);
+      collectSlice(sinogram);
+      //sendOK();
+      sendMatrix(sinogram, NUM_STEPS_PER_SLICE, NUM_DETECTORS);
+      delay(100);
+    //}
+  }
+  //sendDONE();
 }
 
 void setup() {
@@ -182,12 +209,12 @@ void setup() {
 
 // Llama a guardarDatos -- genera secuencia de pines
 void loop() {
-  float sinogram[NUM_STEPS_PER_SLICE][NUM_DETECTORS];
+  //float sinogram[NUM_STEPS_PER_SLICE][NUM_DETECTORS];
   String msg;
   msg = WaitForData();
   if (msg == "m"){
-    collectSlice(sinogram);
-    sendMatrix(sinogram, NUM_STEPS_PER_SLICE, NUM_DETECTORS);
+    collectVolume();
+    //sendMatrix(sinogram, NUM_STEPS_PER_SLICE, NUM_DETECTORS);
   }
   else{
     //Serial.print(msg);
