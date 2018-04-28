@@ -2,6 +2,7 @@ if ~isempty(instrfind)
      fclose(instrfind);
       delete(instrfind);
 end
+
 ard=serial('COM3','BaudRate',9600, 'Terminator', '/'); % create serial communication object 
 fopen(ard); % initiate arduino communication
 pause(3);   % Importante esperar a la conexion!!
